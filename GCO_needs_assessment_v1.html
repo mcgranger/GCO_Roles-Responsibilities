@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GCO Needs Assessment</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Georgia, 'Times New Roman', serif; background: #f5f3ef; color: #1a1a1a; min-height: 100vh; padding: 2rem 1rem; }
+  .page { max-width: 820px; margin: 0 auto; }
+
+  header { margin-bottom: 1.75rem; border-bottom: 2px solid #1a1a1a; padding-bottom: 1.25rem; }
+  header h1 { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 6px; }
+  header p { font-size: 14px; color: #555; font-style: italic; }
+
+  .name-row { display: flex; align-items: center; gap: 12px; margin-bottom: 1.5rem; flex-wrap: wrap; }
+  .name-row label { font-size: 14px; font-weight: 600; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; white-space: nowrap; }
+  .name-row input { font-size: 14px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; border: 1px solid #bbb; border-radius: 6px; padding: 7px 12px; flex: 1; min-width: 200px; background: #fff; color: #1a1a1a; }
+  .name-row input:focus { outline: none; border-color: #888; box-shadow: 0 0 0 2px #e0e0e0; }
+  .name-warning { font-size: 12px; color: #dc2626; display: none; margin-top: -10px; margin-bottom: 10px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+
+  /* TABS */
+  .tabs { display: flex; gap: 4px; margin-bottom: 0; }
+  .tab-btn { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; font-size: 14px; font-weight: 600; padding: 10px 22px; border: 1px solid #ddd; border-bottom: none; border-radius: 8px 8px 0 0; background: #e8e5e0; color: #888; cursor: pointer; transition: background 0.15s, color 0.15s; }
+  .tab-btn.active { background: #fff; color: #1a1a1a; border-color: #ddd; }
+  .tab-btn:hover:not(.active) { background: #ddd8d0; }
+  .tab-content { display: none; background: #fff; border: 1px solid #ddd; border-radius: 0 8px 8px 8px; padding: 1.5rem; }
+  .tab-content.active { display: block; }
+
+  /* LEGENDS */
+  .legend-group { margin-bottom: 1.5rem; }
+  .legend-title { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: #888; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin-bottom: 6px; }
+  .legend { display: flex; gap: 20px; flex-wrap: wrap; align-items: center; }
+  .legend-item { display: flex; align-items: center; gap: 7px; font-size: 13px; color: #444; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  .legend-dot { width: 15px; height: 15px; border-radius: 50%; flex-shrink: 0; }
+
+  /* TRACK HEADERS */
+  .track { margin-bottom: 2rem; }
+  .track-header { font-size: 12px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #888; margin-bottom: 10px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding-bottom: 6px; border-bottom: 1px solid #ddd; }
+  .track-note { font-size: 12px; color: #888; font-style: italic; margin-bottom: 12px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+
+  /* TASK SECTIONS */
+  .task-section { background: #f9f8f6; border: 1px solid #e0ddd8; border-radius: 8px; padding: 0.9rem 1.1rem; margin-bottom: 8px; }
+  .task-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; gap: 10px; flex-wrap: wrap; }
+  .task-title { font-size: 14px; font-weight: 700; color: #1a1a1a; flex: 1; }
+  .task-rollup { display: flex; align-items: center; gap: 7px; font-size: 11px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; color: #aaa; flex-shrink: 0; }
+  .rollup-dot { width: 16px; height: 16px; border-radius: 50%; background: #e0e0e0; flex-shrink: 0; transition: background 0.2s; border: 1.5px solid #ccc; }
+  .rollup-dot.green { background: #22c55e; border-color: #16a34a; }
+  .rollup-dot.yellow { background: #eab308; border-color: #ca8a04; }
+  .rollup-dot.red { background: #ef4444; border-color: #dc2626; }
+
+  /* SUBTASK TABLE */
+  .subs-table { width: 100%; border-collapse: collapse; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  .subs-table td { padding: 4px 5px; font-size: 12.5px; vertical-align: middle; }
+  .subs-table tr { border-bottom: 0.5px solid #ece9e4; }
+  .subs-table tr:last-child { border-bottom: none; }
+  .sub-text { color: #444; line-height: 1.45; }
+  .sub-rating { white-space: nowrap; text-align: right; }
+  .sub-rating-row { display: flex; gap: 6px; align-items: center; justify-content: flex-end; }
+  .rating-btn { width: 20px; height: 20px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; transition: transform 0.1s, border-color 0.15s; flex-shrink: 0; padding: 0; }
+  .rating-btn:hover { transform: scale(1.2); }
+  .rating-btn.selected { border-color: #1a1a1a; transform: scale(1.15); }
+  .rating-btn.green { background: #22c55e; }
+  .rating-btn.yellow { background: #eab308; }
+  .rating-btn.red { background: #ef4444; }
+
+  /* SPONSOR SECTION */
+  .sponsor-group { margin-bottom: 1.5rem; }
+  .sponsor-group-title { font-size: 13px; font-weight: 700; color: #1a1a1a; margin-bottom: 6px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; padding-bottom: 4px; border-bottom: 0.5px solid #e0ddd8; }
+  .sponsor-note { font-size: 11px; color: #888; font-style: italic; margin-bottom: 8px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.5; }
+  .sponsor-row { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; border-bottom: 0.5px solid #f0ede8; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  .sponsor-row:last-child { border-bottom: none; }
+  .sponsor-name { font-size: 12.5px; color: #444; flex: 1; }
+
+  /* EXPORT */
+  .export-section { border-top: 1px solid #e0ddd8; margin-top: 1.5rem; padding-top: 1.25rem; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+  .export-section h3 { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+  .export-instructions { font-size: 12px; color: #555; margin-bottom: 12px; line-height: 1.6; background: #f0ede8; border-radius: 6px; padding: 9px 12px; border-left: 3px solid #bbb; }
+  .export-section textarea { width: 100%; min-height: 180px; font-size: 11.5px; font-family: 'Courier New', monospace; color: #1a1a1a; background: #f9f8f6; border: 1px solid #ddd; border-radius: 6px; padding: 10px; resize: vertical; margin-top: 10px; }
+  .btn-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  button.action { font-size: 13px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #fff; border: 1px solid #bbb; border-radius: 6px; padding: 7px 16px; cursor: pointer; color: #1a1a1a; transition: background 0.1s; }
+  button.action:hover { background: #f0ede8; }
+  button.action.primary { background: #1a1a1a; color: #fff; border-color: #1a1a1a; font-weight: 600; }
+  button.action.primary:hover { background: #333; }
+  button.action:active { transform: scale(0.98); }
+
+  @media (max-width: 540px) { body { padding: 1rem 0.5rem; } .tab-btn { padding: 8px 12px; font-size: 13px; } }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <header>
+    <h1>GCO Needs Assessment</h1>
+    <p>Rate each sub-task and sponsor using the colored circles. Section dots reflect your lowest rating (worst case). Use the Copy buttons to paste results into your Notion onboarding page.</p>
+  </header>
+
+  <div class="name-row">
+    <label for="respondent-name">Your name:</label>
+    <input type="text" id="respondent-name" placeholder="First Last" autocomplete="name" />
+  </div>
+  <div class="name-warning" id="name-warning">Please enter your name before copying results.</div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('preward', this)">Pre-Award</button>
+    <button class="tab-btn" onclick="switchTab('postaward', this)">Post-Award</button>
+  </div>
+
+  <!-- PRE-AWARD TAB -->
+  <div class="tab-content active" id="tab-preward">
+
+    <div class="legend-group">
+      <div class="legend-title">Task ratings</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#22c55e;"></div> Comfortable</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#eab308;"></div> Some experience</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ef4444;"></div> Need training</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#e0e0e0;border:1.5px solid #ccc;"></div> Not yet rated</div>
+      </div>
+    </div>
+    <div class="legend-group">
+      <div class="legend-title">Sponsor familiarity</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#22c55e;"></div> Familiar</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#eab308;"></div> Some exposure</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ef4444;"></div> Not familiar</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#e0e0e0;border:1.5px solid #ccc;"></div> Not yet rated</div>
+      </div>
+    </div>
+
+    <div id="preward-tracks"></div>
+    <div id="sponsor-section"></div>
+
+    <div class="export-section">
+      <h3>Copy pre-award results to Notion</h3>
+      <div class="export-instructions">
+        1. Make sure your name is entered above.<br>
+        2. Click <strong>Copy to clipboard</strong>.<br>
+        3. Switch to Notion and paste into the <em>Pre-Award Needs Assessment</em> section.
+      </div>
+      <div class="btn-row">
+        <button class="action primary" onclick="copyResults('preward')">Copy to clipboard</button>
+        <button class="action" onclick="generateExport('preward')">Refresh</button>
+      </div>
+      <textarea id="export-preward" readonly></textarea>
+    </div>
+  </div>
+
+  <!-- POST-AWARD TAB -->
+  <div class="tab-content" id="tab-postaward">
+
+    <div class="legend-group">
+      <div class="legend-title">Task ratings</div>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#22c55e;"></div> Comfortable</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#eab308;"></div> Some experience</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ef4444;"></div> Need training</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#e0e0e0;border:1.5px solid #ccc;"></div> Not yet rated</div>
+      </div>
+    </div>
+
+    <div id="postaward-tracks"></div>
+
+    <div class="export-section">
+      <h3>Copy post-award results to Notion</h3>
+      <div class="export-instructions">
+        1. Make sure your name is entered above.<br>
+        2. Click <strong>Copy to clipboard</strong>.<br>
+        3. Switch to Notion and paste into the <em>Post-Award Needs Assessment</em> section.
+      </div>
+      <div class="btn-row">
+        <button class="action primary" onclick="copyResults('postaward')">Copy to clipboard</button>
+        <button class="action" onclick="generateExport('postaward')">Refresh</button>
+      </div>
+      <textarea id="export-postaward" readonly></textarea>
+    </div>
+  </div>
+
+</div><!-- end .page -->
+<script>
+// ── TAB SWITCHING ────────────────────────────────────────────
+function switchTab(tab, btn) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + tab).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── DATA ─────────────────────────────────────────────────────
+const prewardTracks = [
+  {
+    label: "Track A — NOFO-Based Proposal Submissions (Grants)",
+    note: "Tasks in approximate chronological order for a grant submission responding to a published NOFO.",
+    sections: [
+      { title: "Analyze / review NOFO", subs: [
+        "Check for eligibility, required cost share, due dates, NOFO expiration date",
+        "Create submission document checklist"
+      ]},
+      { title: "Limited submission opportunity (LSO)", subs: [
+        "If RFP is an LSO, coordinate with OVPR"
+      ]},
+      { title: "Create shared digital workspace", subs: [
+        "Create a shared digital location for the group to work from"
+      ]},
+      { title: "DSS questionnaire, eProposal & preliminary budget", subs: [
+        "Draft a simple preliminary budget in RA-group budget template to send with DSS questionnaire",
+        "Check PI on any additional compensation needs",
+        "Work with PI to complete DSS questionnaire",
+        "Create the DSS in eProposal while awaiting questionnaire answers",
+        "If cost share: initiate paperwork with Chair/OVPR",
+        "If SIRB (UU single site): make IRB consultation appointment (required before finalizing budget and legally listing UU as SIRB site)",
+        "If USMRS data: initiate Data Sharing Agreement (DSA) process ASAP — OSP needs 30 days prior to sponsor deadline"
+      ]},
+      { title: "PI waiver", subs: [
+        "If a PI waiver is required, coordinate with Dean's office/OSP on waiver request"
+      ]},
+      { title: "Sponsor portal submission setup", subs: [
+        "Create proposal submission in sponsor portal (Cayuse/Research.gov/BBRF/AFSP/etc.)"
+      ]},
+      { title: "Other support & biosketches", subs: [
+        "As needed, work with PIs to create/update Other Support (OS) documentation for PI to upload to Common Forms",
+        "As needed, work with PIs to create/update material for biosketch/SciENcv for PI to upload to Common Forms"
+      ]},
+      { title: "Companion departments, subawardees, consultants & PTEs", subs: [
+        "As needed, work with companion department on all elements of their share of the submission",
+        "As needed, initiate discussions with and coordinate subawardees and/or consultants",
+        "As needed, initiate discussions with and coordinate pass-through entities (PTEs)"
+      ]},
+      { title: "Clinical trial pre-award", subs: [
+        "Review and analyze clinical trial protocol and sponsor agreement",
+        "Work with PI/study team and sponsor to develop study-specific budget",
+        "Negotiate study budget with sponsor",
+        "Determine CTMS and invoicing basis (sponsor vs. dept-level)",
+        "Coordinate with CRSO/OnCore for study setup and budget entry",
+        "Coordinate with IRB for protocol review and approval timeline",
+        "As needed, coordinate with sponsor and regulatory team if IND/IDE is involved",
+        "Reconcile study budget with protocol prior to submission/execution",
+        "Ensure placeholders for IRB fees, CTMS fees, and other study-specific ODCs are included in budget"
+      ]},
+      { title: "Budget development & review", subs: [
+        "As needed, work with PI/study team to determine any needed additional compensation; prepare prior approval request and route for approval",
+        "As needed, ensure salary cap is implemented correctly",
+        "Determine indirect basis mechanism(s) — direct vs. TFA and total direct vs. MTDC",
+        "Determine fringe rate (FR) for all involved personnel",
+        "Determine distribution allowable window from UU and sponsor perspective",
+        "If clinical trial: work with PI/study team and sponsor to reconcile budget with protocol",
+        "Ensure indirect cost rate (ICR) and cost is appropriate",
+        "If ICR waiver is requested: work with OSP/Dean's office on waiver request",
+        "Ensure allowable",
+        "Ensure F&A eligible/ineligible are correct",
+        "Ensure ODCs include appropriate placeholders for core fees; IRB/IACUC/IBC etc.; CTMS and invoice basis — sponsor vs. dept-level",
+        "Ensure travel budgets accommodate any sponsor-/prime/PTE/UU-imposed fees or restrictions",
+        "Ensure prospective add comps are included, discussed, and a request for prior approval is filed",
+        "Coordinate with the PI/study team to finalize budget",
+        "As needed, work with dept/Institute on cost share elements of the submission"
+      ]},
+      { title: "Human/animal subjects & biosafety", subs: [
+        "If human/animal subjects: coordinate with IRB/IACUC for protocol and budget consultation",
+        "If IBC: coordinate with IBC as needed"
+      ]},
+      { title: "Letters of support & submission coordination", subs: [
+        "As needed, provide template for departmental/Institute letters of support",
+        "Coordinate with the PI/study team on submission-element completion and Q&A",
+        "As needed, coordinate with RFP's PO or GMS to answer questions about the RFP/submission"
+      ]},
+      { title: "Invention disposition", subs: [
+        "As needed, work with PI/study team on invention disposition"
+      ]},
+      { title: "Review & submission", subs: [
+        "Perform dept-level review of submission material (independent review from RA group)",
+        "Coordinate with OSP for OSP review",
+        "Work with PI/study team to update/correct any issues that the RA group or OSP discovers",
+        "Complete upload to sponsor portal",
+        "Submit post-submission materials as needed"
+      ]},
+      { title: "Post-submission", subs: [
+        "When requested, coordinate with the PI/study team to complete just-in-time (JIT) requests",
+        "If needed, work to set up a preliminary project for pending notice of award (NOA) or extending prelim projects"
+      ]}
+    ]
+  },
+  {
+    label: "Track B — Investigator-Initiated (Agreements/Contracts)",
+    note: "Tasks for sponsored and non-sponsored agreement development. Many run parallel to or feed into Track A once the mechanism is determined.",
+    sections: [
+      { title: "Analyze opportunity & determine contract mechanism", subs: [
+        "Analyze for most appropriate contract mechanism — work with OSP as needed",
+        "As needed, initiate administrative discussions with sponsor"
+      ]},
+      { title: "Agreements (CTA/CDA/DUA/BAA/ISAF)", subs: [
+        "Determine whether an Agreement/CTA/CDA/DUA/BAA (ISAF) will be required (see SOP_0049 Contract Process Flow)",
+        "Sponsored project agreements: as needed, work with cognizant entity(ies) and OSP to create draft agreement and route for review and approval",
+        "Non-sponsored agreements: route through TLO or OGC for review and approval"
+      ]},
+      { title: "Contract/agreement development", subs: [
+        "Determine contract mechanism",
+        "For fixed price contract: as needed, work with PI/study team and sponsor to create milestone-based or tiered invoice schedule",
+        "As needed, support PI/study team and sponsor to create agreement"
+      ]}
+    ]
+  }
+];
+
+const sponsorGroups = [
+  {
+    group: "Federal Sponsors",
+    note: null,
+    sponsors: [
+      "NIH — NIMH (National Institute of Mental Health)",
+      "NIH — NIAAA (National Institute on Alcohol Abuse and Alcoholism)",
+      "NIH — NIDA (National Institute on Drug Abuse)",
+      "NIH — NIMHD (National Institute on Minority Health and Health Disparities)",
+      "NIH — NINDS (National Institute of Neurological Disorders and Stroke)",
+      "NIH — Other ICs",
+      "NSF (National Science Foundation)",
+      "DOD/MTEC (Dept. of Defense / Medical Technology Enterprise Consortium)",
+      "SAMHSA (Substance Abuse and Mental Health Services Administration)",
+      "HRSA (Health Resources and Services Administration)"
+    ]
+  },
+  {
+    group: "State Sponsors",
+    note: null,
+    sponsors: [
+      "UT HHS (Utah Department of Health and Human Services)",
+      "UT OME (Utah Office of Medical Education)"
+    ]
+  },
+  {
+    group: "Other Sponsors",
+    note: null,
+    sponsors: [
+      "NNDC (National Network of Depression Centers)"
+    ]
+  },
+  {
+    group: "Foundations",
+    note: "The foundations listed below represent recent and current examples from our sponsor landscape; many additional foundations are active in the behavioral health and psychiatric research space.",
+    sponsors: [
+      "BBRF (Brain & Behavior Research Foundation)",
+      "PCORI (Patient-Centered Outcomes Research Institute)",
+      "Wellcome Trust",
+      "Palix Foundation",
+      "RBHI (Rural Behavioral Health Institute)"
+    ]
+  }
+];
+
+const postawardTracks = [
+  {
+    label: "Post-Award Management",
+    note: "Tasks listed in approximate chronological order across the award lifecycle.",
+    sections: [
+      { title: "Award receipt & setup", subs: [
+        "Review NOA",
+        "As needed, negotiate NOA",
+        "Process NOA — ensure OSP processes the award setup",
+        "Request expedited processing with GCA when appropriate and follow up regularly",
+        "Reconcile awarded budget against proposed budget",
+        "Set up project in institutional systems (eAward, etc.)",
+        "Communicate award details to PI and study team"
+      ]},
+      { title: "Financial management & monitoring", subs: [
+        "Perform regular financial review (Management reports)",
+        "Monitor expenditures and perform variance analysis",
+        "Process cost transfers as needed",
+        "Manage effort reporting/ePARs for project personnel",
+        "Re-budget (including formal prior approval request for re-budgets >25%)"
+      ]},
+      { title: "Award modifications & prior approvals", subs: [
+        "Administrative NOAs",
+        "Org ID change (financial org 02372 — vestige of a recent organizational restructuring)",
+        "Submit amendments in eRA commons",
+        "Other eAward requests",
+        "Prior approval request — change in scope",
+        "Prior approval request — change in key personnel",
+        "Prior approval request — budget reallocation >25%",
+        "Prior approval request — other sponsor-required approvals"
+      ]},
+      { title: "Compliance & reporting", subs: [
+        "Progress reports (RPPR/E-SNAP)",
+        "Financial reports (FFR)",
+        "Invention reporting (FIS) — coordinate with TLO",
+        "Record retention",
+        "Coordinate audits and site visits as needed"
+      ]},
+      { title: "Extensions", subs: [
+        "1st NCE — coordinate with SPO to submit; once approved, process through eAward",
+        "2nd NCE — work with PI to prepare documentation for formal request; coordinate with SPO for submission; process through eAward upon approval"
+      ]},
+      { title: "Carryover", subs: [
+        "Carryover request — work with PI to prepare required documents to submit formal request; coordinate with SPO for submission"
+      ]},
+      { title: "Supplements", subs: [
+        "As needed, initiate or support PI in initiating supplement requests"
+      ]},
+      { title: "Subaward management", subs: [
+        "Subaward setup",
+        "Subaward monitoring",
+        "Subaward closeout — coordinate with OSP"
+      ]},
+      { title: "Clinical trial post-award", subs: [
+        "Reconcile study budget against protocol on an ongoing basis",
+        "Manage CTMS — invoicing basis (sponsor vs. dept-level)",
+        "Coordinate sponsor invoicing and payment tracking",
+        "Support sponsor monitoring visits and audits",
+        "Coordinate with CRSO/OnCore as needed",
+        "Manage protocol amendments with budget implications"
+      ]},
+      { title: "Award closeout", subs: [
+        "Coordinate with OSP/GCA to close award/project",
+        "Coordinate with RMC for final RPPR (fRPPR)",
+        "Coordinate with TLO for Final Invention Statement (FIS)",
+        "Coordinate with GCA for Final Financial Report (FFR)",
+        "Award termination — coordinate early closeout if required",
+        "Confirm record retention requirements are met"
+      ]}
+    ]
+  }
+];
+
+// ── STATE ────────────────────────────────────────────────────
+const ratings = {}; // key: "pre-{gIdx}" or "post-{gIdx}" or "sponsor-{gIdx}"
+const rankMap = { green: 1, yellow: 2, red: 3 };
+const rankColor = ['', 'green', 'yellow', 'red'];
+const taskLabelMap = { green: '🟢 Comfortable', yellow: '🟡 Some experience', red: '🔴 Need training' };
+const sponsorLabelMap = { green: '🟢 Familiar', yellow: '🟡 Some exposure', red: '🔴 Not familiar' };
+
+let preMeta = [];   // { secId, title, trackLabel, subIndices, subTexts }
+let postMeta = [];
+let sponsorMeta = []; // { group, name, idx }
+
+// ── BUILD PRE-AWARD ──────────────────────────────────────────
+function buildTracks(tracks, containerId, prefix, metaArr) {
+  const container = document.getElementById(containerId);
+  let gIdx = 0;
+  tracks.forEach((track, ti) => {
+    const trackDiv = document.createElement('div');
+    trackDiv.className = 'track';
+    trackDiv.innerHTML = `<div class="track-header">${track.label}</div><div class="track-note">${track.note}</div>`;
+    track.sections.forEach((sec, si) => {
+      const secId = `${prefix}-${ti}-${si}`;
+      const subIndices = [];
+      let rows = '';
+      sec.subs.forEach((sub, subI) => {
+        subIndices.push(gIdx);
+        rows += `<tr>
+          <td class="sub-text">${sub}</td>
+          <td class="sub-rating"><div class="sub-rating-row">
+            <button class="rating-btn green" data-key="${prefix}-${gIdx}" data-secid="${secId}" data-val="green" title="Comfortable"></button>
+            <button class="rating-btn yellow" data-key="${prefix}-${gIdx}" data-secid="${secId}" data-val="yellow" title="Some experience"></button>
+            <button class="rating-btn red" data-key="${prefix}-${gIdx}" data-secid="${secId}" data-val="red" title="Need training"></button>
+          </div></td>
+        </tr>`;
+        gIdx++;
+      });
+      metaArr.push({ secId, title: sec.title, trackLabel: track.label, subIndices, subTexts: sec.subs });
+      const secDiv = document.createElement('div');
+      secDiv.className = 'task-section';
+      secDiv.innerHTML = `
+        <div class="task-header">
+          <div class="task-title">${sec.title}</div>
+          <div class="task-rollup"><span>Section:</span><div class="rollup-dot" id="rollup-${secId}"></div></div>
+        </div>
+        <table class="subs-table">${rows}</table>`;
+      trackDiv.appendChild(secDiv);
+    });
+    container.appendChild(trackDiv);
+  });
+  return gIdx;
+}
+
+// ── BUILD SPONSOR SECTION ────────────────────────────────────
+function buildSponsors() {
+  const container = document.getElementById('sponsor-section');
+  const wrapper = document.createElement('div');
+  wrapper.className = 'track';
+  wrapper.innerHTML = `<div class="track-header">Sponsor Landscape Familiarity</div><div class="track-note">Rate your familiarity with the requirements, culture, and submission processes of each sponsor or sponsor type.</div>`;
+  let gIdx = 0;
+  sponsorGroups.forEach(grp => {
+    const grpDiv = document.createElement('div');
+    grpDiv.className = 'task-section sponsor-group';
+    let noteHtml = grp.note ? `<div class="sponsor-note">${grp.note}</div>` : '';
+    let rows = '';
+    grp.sponsors.forEach(sp => {
+      const key = `sponsor-${gIdx}`;
+      sponsorMeta.push({ group: grp.group, name: sp, idx: gIdx });
+      rows += `<div class="sponsor-row">
+        <span class="sponsor-name">${sp}</span>
+        <div class="sub-rating-row">
+          <button class="rating-btn green" data-key="${key}" data-val="green" title="Familiar"></button>
+          <button class="rating-btn yellow" data-key="${key}" data-val="yellow" title="Some exposure"></button>
+          <button class="rating-btn red" data-key="${key}" data-val="red" title="Not familiar"></button>
+        </div>
+      </div>`;
+      gIdx++;
+    });
+    grpDiv.innerHTML = `<div class="sponsor-group-title">${grp.group}</div>${noteHtml}${rows}`;
+    wrapper.appendChild(grpDiv);
+  });
+  container.appendChild(wrapper);
+}
+
+buildTracks(prewardTracks, 'preward-tracks', 'pre', preMeta);
+buildTracks(postawardTracks, 'postaward-tracks', 'post', postMeta);
+buildSponsors();
+
+// ── CLICK HANDLER ────────────────────────────────────────────
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.rating-btn');
+  if (!btn) return;
+  const key = btn.dataset.key;
+  const val = btn.dataset.val;
+  ratings[key] = val;
+  document.querySelectorAll(`.rating-btn[data-key="${key}"]`).forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  if (btn.dataset.secid) updateRollup(btn.dataset.secid);
+  generateExport(key.startsWith('pre') || key.startsWith('sponsor') ? 'preward' : 'postaward');
+});
+
+function updateRollup(secId) {
+  const meta = [...preMeta, ...postMeta].find(s => s.secId === secId);
+  if (!meta) return;
+  const prefix = secId.startsWith('pre') ? 'pre' : 'post';
+  const ranked = meta.subIndices.map(i => {
+    const r = ratings[`${prefix}-${i}`];
+    return r ? rankMap[r] : 0;
+  }).filter(r => r > 0);
+  const dot = document.getElementById(`rollup-${secId}`);
+  if (dot) dot.className = ranked.length === 0 ? 'rollup-dot' : 'rollup-dot ' + rankColor[Math.max(...ranked)];
+}
+
+// ── EXPORT GENERATION ────────────────────────────────────────
+function getWorstCase(meta, prefix) {
+  const ranked = meta.subIndices.map(i => {
+    const r = ratings[`${prefix}-${i}`];
+    return r ? rankMap[r] : 0;
+  }).filter(r => r > 0);
+  if (ranked.length === 0) return '⬜ Not rated';
+  return taskLabelMap[rankColor[Math.max(...ranked)]];
+}
+
+function generateExport(tab) {
+  const name = document.getElementById('respondent-name').value.trim() || '(name not entered)';
+  const date = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  let lines = [];
+
+  if (tab === 'preward') {
+    lines.push('Pre-Award Needs Assessment');
+    lines.push(`Respondent: ${name}`);
+    lines.push(`Date: ${date}`);
+    lines.push('');
+
+    prewardTracks.forEach((track, ti) => {
+      lines.push('═══════════════════════════════════════');
+      lines.push(track.label);
+      lines.push('═══════════════════════════════════════');
+      lines.push('');
+      track.sections.forEach((sec, si) => {
+        const meta = preMeta.find(m => m.secId === `pre-${ti}-${si}`);
+        const worst = getWorstCase(meta, 'pre');
+        lines.push(sec.title);
+        lines.push(`Section level (worst case): ${worst}`);
+        sec.subs.forEach((sub, subI) => {
+          const r = ratings[`pre-${meta.subIndices[subI]}`];
+          lines.push(`  • ${sub}`);
+          lines.push(`    ${r ? taskLabelMap[r] : '⬜ Not rated'}`);
+        });
+        lines.push('');
+      });
+    });
+
+    // Sponsor familiarity
+    lines.push('═══════════════════════════════════════');
+    lines.push('Sponsor Landscape Familiarity');
+    lines.push('═══════════════════════════════════════');
+    lines.push('');
+    sponsorGroups.forEach(grp => {
+      lines.push(grp.group);
+      if (grp.note) lines.push(`  Note: ${grp.note}`);
+      grp.sponsors.forEach(sp => {
+        const meta = sponsorMeta.find(m => m.name === sp);
+        const r = ratings[`sponsor-${meta.idx}`];
+        lines.push(`  • ${sp}`);
+        lines.push(`    ${r ? sponsorLabelMap[r] : '⬜ Not rated'}`);
+      });
+      lines.push('');
+    });
+
+    document.getElementById('export-preward').value = lines.join('\n');
+
+  } else {
+    lines.push('Post-Award Needs Assessment');
+    lines.push(`Respondent: ${name}`);
+    lines.push(`Date: ${date}`);
+    lines.push('');
+
+    postawardTracks.forEach((track, ti) => {
+      lines.push('═══════════════════════════════════════');
+      lines.push(track.label);
+      lines.push('═══════════════════════════════════════');
+      lines.push('');
+      track.sections.forEach((sec, si) => {
+        const meta = postMeta.find(m => m.secId === `post-${ti}-${si}`);
+        const worst = getWorstCase(meta, 'post');
+        lines.push(sec.title);
+        lines.push(`Section level (worst case): ${worst}`);
+        sec.subs.forEach((sub, subI) => {
+          const r = ratings[`post-${meta.subIndices[subI]}`];
+          lines.push(`  • ${sub}`);
+          lines.push(`    ${r ? taskLabelMap[r] : '⬜ Not rated'}`);
+        });
+        lines.push('');
+      });
+    });
+
+    document.getElementById('export-postaward').value = lines.join('\n');
+  }
+}
+
+function copyResults(tab) {
+  const name = document.getElementById('respondent-name').value.trim();
+  const warning = document.getElementById('name-warning');
+  if (!name) {
+    warning.style.display = 'block';
+    document.getElementById('respondent-name').focus();
+    return;
+  }
+  warning.style.display = 'none';
+  generateExport(tab);
+  const ta = document.getElementById(`export-${tab}`);
+  ta.select();
+  document.execCommand('copy');
+  const btns = document.querySelectorAll(`#tab-${tab} button.primary`);
+  btns.forEach(btn => {
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copied! Now paste into Notion.';
+    setTimeout(() => btn.textContent = orig, 3000);
+  });
+}
+
+// Initial export generation
+generateExport('preward');
+generateExport('postaward');
+</script>
+</body>
+</html>
